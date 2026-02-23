@@ -116,6 +116,14 @@ func (p *AWSPlugin) ConfigSchema(ctx context.Context) ([]sdk.ConfigField, error)
 	}, nil
 }
 
+func (p *AWSPlugin) Constraints(ctx context.Context) (*sdk.Constraints, error) {
+	return &sdk.Constraints{
+		MaxTTL:      12 * time.Hour,
+		MinTTL:      15 * time.Minute,
+		Description: "AWS STS AssumeRole supports session duration between 15 minutes and 12 hours (default role limit)",
+	}, nil
+}
+
 func (p *AWSPlugin) Configure(ctx context.Context, configJSON string) error {
 	var cfg AWSConfig
 	if err := json.Unmarshal([]byte(configJSON), &cfg); err != nil {

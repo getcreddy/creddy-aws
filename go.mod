@@ -7,7 +7,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.29.14
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.67
 	github.com/aws/aws-sdk-go-v2/service/sts v1.33.19
-	github.com/getcreddy/creddy-plugin-sdk v0.0.0-20260223033639-e09e89c176ce
+	github.com/getcreddy/creddy-plugin-sdk v0.0.0-20260223035836-0cafb6469018
 )
 
 require (
