@@ -80,6 +80,42 @@ func (p *AWSPlugin) Scopes(ctx context.Context) ([]sdk.ScopeSpec, error) {
 	}, nil
 }
 
+func (p *AWSPlugin) ConfigSchema(ctx context.Context) ([]sdk.ConfigField, error) {
+	return []sdk.ConfigField{
+		{
+			Name:        "access_key_id",
+			Type:        "string",
+			Description: "AWS Access Key ID",
+			Required:    true,
+		},
+		{
+			Name:        "secret_access_key",
+			Type:        "secret",
+			Description: "AWS Secret Access Key",
+			Required:    true,
+		},
+		{
+			Name:        "role_arn",
+			Type:        "string",
+			Description: "IAM Role ARN to assume (e.g., arn:aws:iam::123456789012:role/MyRole)",
+			Required:    true,
+		},
+		{
+			Name:        "region",
+			Type:        "string",
+			Description: "AWS Region",
+			Required:    false,
+			Default:     "us-east-1",
+		},
+		{
+			Name:        "external_id",
+			Type:        "string",
+			Description: "External ID for cross-account role assumption",
+			Required:    false,
+		},
+	}, nil
+}
+
 func (p *AWSPlugin) Configure(ctx context.Context, configJSON string) error {
 	var cfg AWSConfig
 	if err := json.Unmarshal([]byte(configJSON), &cfg); err != nil {
