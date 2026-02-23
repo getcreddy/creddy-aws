@@ -1,0 +1,67 @@
+.PHONY: build test clean install dev info validate
+
+BINARY_NAME=creddy-aws
+VERSION=$(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
+LDFLAGS=-ldflags "-X main.Version=$(VERSION)"
+
+# Build the plugin
+build:
+	go build $(LDFLAGS) -o bin/$(BINARY_NAME) .
+
+# Build for all platforms
+build-all:
+	GOOS=darwin GOARCH=arm64 go build $(LDFLAGS) -o bin/$(BINARY_NAME)-darwin-arm64 .
+	GOOS=darwin GOARCH=amd64 go build $(LDFLAGS) -o bin/$(BINARY_NAME)-darwin-amd64 .
+	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o bin/$(BINARY_NAME)-linux-amd64 .
+	GOOS=linux GOARCH=arm64 go build $(LDFLAGS) -o bin/$(BINARY_NAME)-linux-arm64 .
+
+# Run tests
+test:
+	go test -v ./...
+
+# Clean build artifacts
+clean:
+	rm -rf bin/
+
+# Install to local Creddy plugins directory
+install: build
+	mkdir -p ~/.creddy/plugins
+	cp bin/$(BINARY_NAME) ~/.creddy/plugins/
+
+# --- Development helpers ---
+
+# Show plugin info (standalone mode)
+info: build
+	./bin/$(BINARY_NAME) info
+
+# List scopes (standalone mode)
+scopes: build
+	./bin/$(BINARY_NAME) scopes
+
+# Validate config (standalone mode)
+# Usage: make validate CONFIG=path/to/config.json
+validate: build
+	./bin/$(BINARY_NAME) validate --config $(CONFIG)
+
+# Get a credential (standalone mode)
+# Usage: make get CONFIG=config.json SCOPE="aws:s3"
+get: build
+	./bin/$(BINARY_NAME) get --config $(CONFIG) --scope "$(SCOPE)" --ttl 10m
+
+# Development mode: build and install on every change
+dev:
+	@echo "Watching for changes..."
+	@while true; do \
+		$(MAKE) install; \
+		inotifywait -qre modify --include '\.go$$' . 2>/dev/null || fswatch -1 *.go 2>/dev/null || sleep 5; \
+	done
+
+# Create a test config file template
+config-template:
+	@echo '{'
+	@echo '  "access_key_id": "AKIAIOSFODNN7EXAMPLE",'
+	@echo '  "secret_access_key": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",'
+	@echo '  "role_arn": "arn:aws:iam::123456789012:role/MyRole",'
+	@echo '  "region": "us-east-1",'
+	@echo '  "external_id": "optional-external-id"'
+	@echo '}'
